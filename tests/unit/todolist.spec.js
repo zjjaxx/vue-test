@@ -1,10 +1,11 @@
 import { mount } from '@vue/test-utils'
 import Todolist from '@/views/todolist.vue'
-
+import store from './store_func'
 describe('todolist 集成测试', () => {
   let todoWrapper = null
   beforeEach(() => {
-    todoWrapper = mount(Todolist)
+    const _store = store()
+    todoWrapper = mount(Todolist, { store: _store })
   })
   test(`
         1. header 组件中的input 输入框输入待办事项
@@ -23,7 +24,11 @@ describe('todolist 集成测试', () => {
         1. undolist 组件中的item 点击删除按钮
         2. undolist 删除该item
     `, async () => {
-    await todoWrapper.setData({ todoList: [{ status: false, type: 'div', value: 'undoItem1' }, { status: false, type: 'div', value: 'undoItem2' }] })
+    const input = todoWrapper.find('#input')
+    input.setValue('undoItem1')
+    await input.trigger('keyup.enter')
+    input.setValue('undoItem2')
+    await input.trigger('keyup.enter')
     await todoWrapper.findAll('.undo-list .undo-item .undo-item-remove-icon').at(1).trigger('click')
     expect(todoWrapper.findAll('.undo-list .undo-item').length).toBe(1)
     expect(todoWrapper.find('.undo-list .undo-item .undo-item-text').text()).toEqual('undoItem1')
@@ -33,7 +38,11 @@ describe('todolist 集成测试', () => {
         2. 修改内容
         3. 失焦时重新变回文本元素
     `, async () => {
-    await todoWrapper.setData({ todoList: [{ status: false, type: 'div', value: 'undoItem1' }, { status: false, type: 'div', value: 'undoItem2' }] })
+    const input = todoWrapper.find('#input')
+    input.setValue('undoItem1')
+    await input.trigger('keyup.enter')
+    input.setValue('undoItem2')
+    await input.trigger('keyup.enter')
     await todoWrapper.findAll('.undo-list .undo-item .undo-item-text').at(1).trigger('click')
     expect(todoWrapper.findAll('.undo-list .undo-item').at(1).find('.undo-item-input').exists()).toBe(true)
     await todoWrapper.find('.undo-list .undo-item .undo-item-input').setValue('undoItem update')

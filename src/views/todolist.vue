@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import { mapMutations, mapState } from 'vuex'
 import Header from '@/components/header'
 import UndoList from '@/components/undolist'
 export default {
@@ -20,29 +21,38 @@ export default {
     UndoList
   },
   data () {
-    return {
-      todoList: []
-    }
+    return {}
   },
+  computed: mapState({
+    todoList: (state) => state.todoList
+  }),
   methods: {
+    ...mapMutations({
+      updateTodoList: 'updateTodoList'
+    }),
     inputEnter (value) {
-      this.todoList.push({ type: 'div', value: value, status: false })
+      this.updateTodoList({
+        action: 'ADD',
+        data: { type: 'div', value: value, status: false }
+      })
     },
     removeItem (index) {
-      this.todoList.splice(index, 1)
+      this.updateTodoList({
+        action: 'REMOVE',
+        data: { index }
+      })
     },
     updateItem (value, index) {
-      this.todoList.forEach((item, _index) => {
-        if (_index === index) {
-          item.value = value
-        }
+      console.log(value)
+      this.updateTodoList({
+        action: 'UPDATE',
+        data: { index, value, param: 'value' }
       })
     },
     changeItemType (index, type) {
-      this.todoList.forEach((item, _index) => {
-        if (_index === index) {
-          item.type = type
-        }
+      this.updateTodoList({
+        action: 'UPDATE',
+        data: { index, type, param: 'type' }
       })
     }
   }

@@ -10,7 +10,7 @@
       <li class="undo-item" v-for="(item, index) in todoList" :key="index">
         <input
           class="checkbox"
-          @change="changeStatus($event,index)"
+          @change="changeStatus($event, index)"
           type="checkbox"
           :checked="item.status"
         />
@@ -24,6 +24,7 @@
           v-else
           class="undo-item-input"
           type="text"
+          v-focus
           :value="item.value"
           @blur="changeItemType(index, 'div')"
           @input="update($event, index)"
@@ -36,6 +37,14 @@
 
 <script>
 export default {
+  directives: {
+    focus: {
+      // 指令的定义
+      inserted: function (el) {
+        el.focus()
+      }
+    }
+  },
   props: {
     type: {
       type: String,
