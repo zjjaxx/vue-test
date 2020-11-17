@@ -1,32 +1,44 @@
-import { shallowMount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import Todolist from '@/views/todolist.vue'
-import Header from '@/components/header'
-import Undolist from '@/components/undolist'
-describe('todolist test', () => {
+
+describe('todolist 集成测试', () => {
   let todoWrapper = null
   beforeEach(() => {
-    todoWrapper = shallowMount(Todolist, {})
+    todoWrapper = mount(Todolist)
   })
-  test('todolist 存在', () => {
-    expect(Todolist).not.toBeUndefined()
-    expect(todoWrapper.exists()).toBe(true)
+  test(`
+        1. header 组件中的input 输入框输入待办事项
+        2. 点击回车键
+        3. undolist 组件中显示代办事项
+        4. 清空input 输入框内容
+    `, async () => {
+    const input = todoWrapper.find('#input')
+    input.setValue('todoItem')
+    await input.trigger('keyup.enter')
+    expect(todoWrapper.findAll('.undo-list .undo-item').length).toBe(1)
+    expect(todoWrapper.find('.undo-list .undo-item .undo-item-text').text()).toEqual('todoItem')
+    expect(input.element.value).toEqual('')
   })
-  test('input有值时，按下回车键，todolist 添加输入值', () => {
-    const headerWrapper = todoWrapper.findComponent(Header)
-    headerWrapper.vm.$emit('inputEnter', 'bbb')
-    expect(todoWrapper.vm.$data.todoList[0]).toEqual({ value: 'bbb', type: 'div', status: false })
+  test(`
+        1. undolist 组件中的item 点击删除按钮
+        2. undolist 删除该item
+    `, async () => {
+    await todoWrapper.setData({ todoList: [{ status: false, type: 'div', value: 'undoItem1' }, { status: false, type: 'div', value: 'undoItem2' }] })
+    await todoWrapper.findAll('.undo-list .undo-item .undo-item-remove-icon').at(1).trigger('click')
+    expect(todoWrapper.findAll('.undo-list .undo-item').length).toBe(1)
+    expect(todoWrapper.find('.undo-list .undo-item .undo-item-text').text()).toEqual('undoItem1')
   })
-  test('删除 undoItem', () => {
-    todoWrapper.setData({ todoList: [{ type: 'div', value: 'todoItem-1', status: false }, { type: 'div', value: 'todoItem-2', status: false }] })
-    todoWrapper.findComponent(Undolist).vm.$emit('removeItem', 0)
-    console.log(todoWrapper.vm.$data.todoList)
-    expect(todoWrapper.vm.$data.todoList).toEqual([{ type: 'div', value: 'todoItem-2', status: false }])
-  })
-  test('编辑更新 todoList', () => {
-    todoWrapper.setData({ todoList: [{ type: 'div', value: 'todoItem-1', status: false }, { type: 'div', value: 'todoItem-2', status: false }] })
-    todoWrapper.findComponent(Undolist).vm.$emit('changeItemType', 1, 'input')
-    expect(todoWrapper.vm.$data.todoList).toEqual([{ type: 'div', value: 'todoItem-1', status: false }, { type: 'input', value: 'todoItem-2', status: false }])
-    todoWrapper.findComponent(Undolist).vm.$emit('updateItem', 'update', 1)
-    expect(todoWrapper.vm.$data.todoList).toEqual([{ type: 'div', value: 'todoItem-1', status: false }, { type: 'input', value: 'update', status: false }])
+  test(`
+        1. 点击undoItem 代办事项内容，span变成input,可以编辑该内容
+        2. 修改内容
+        3. 失焦时重新变回文本元素
+    `, async () => {
+    await todoWrapper.setData({ todoList: [{ status: false, type: 'div', value: 'undoItem1' }, { status: false, type: 'div', value: 'undoItem2' }] })
+    await todoWrapper.findAll('.undo-list .undo-item .undo-item-text').at(1).trigger('click')
+    expect(todoWrapper.findAll('.undo-list .undo-item').at(1).find('.undo-item-input').exists()).toBe(true)
+    await todoWrapper.find('.undo-list .undo-item .undo-item-input').setValue('undoItem update')
+    await todoWrapper.find('.undo-list .undo-item .undo-item-input').trigger('blur')
+    expect(todoWrapper.findAll('.undo-list .undo-item').at(1).find('.undo-item-text').exists()).toBe(true)
+    expect(todoWrapper.findAll('.undo-list .undo-item').at(1).find('.undo-item-text').text()).toEqual('undoItem update')
   })
 })

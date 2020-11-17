@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`test header header 样式快照 1`] = `
-<div class="header-wrap">
-  <div class="header"><span class="title"> TodoList </span> <input id="input" type="text" placeholder="please enter todoItem" class="input"></div>
-</div>
-`;
